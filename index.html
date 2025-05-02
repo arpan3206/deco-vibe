@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>decovibe- Digital Store</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Loader Animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Navigation Styles */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: #00ff88;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00ff88;
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Section Common Styles */
+        section {
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+
+        section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Home Section */
+        
+        #home {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url('bg.jpg'); /* Local background image */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+               /* for decovibe teext on homesection */
+        .hero-content h1 {
+            font-size: 11rem;
+            margin-bottom: 7rem;
+            animation: textGlow 2s infinite alternate;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            background: #00ff88;
+            color: #080000;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #ff0000;
+            transform: scale(1.1);
+        }
+
+        /* Products Section */
+        #products {
+            padding: 6rem 2rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        .product-image {
+            width: 100%;
+            border-radius: 5px;
+            transition: transform 0.3s;
+        }
+
+        /* Product Detail Modal */
+        .product-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .product-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .product-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #00ff88;
+            transform: rotate(90deg);
+        }
+
+        .product-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .product-images img {
+            width: 100%;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .product-images img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Cart Section */
+        #cart {
+            background: #0d0d0d;
+        }
+
+        .cart-items {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            animation: slideIn 0.5s ease-out;
+            transition: all 0.3s;
+        }
+
+        .cart-item-remove {
+            animation: slideOut 0.3s ease-out;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes textGlow {
+            from { text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+            to { text-shadow: 0 0 20px rgba(0, 255, 136, 0.8); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .staggered {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(5) { animation-delay: 0.5s; }
+        .product-card:nth-child(6) { animation-delay: 0.6s; }
+        .product-card:nth-child(7) { animation-delay: 0.7s; }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#cart">Cart</a></li>
+        </ul>
+    </nav>
+
+    <!-- Sections -->
+    <section id="home">
+        <div class="hero-content">
+            <h1>DECO VIBE</h1>
+            <p>style up your phone</p>
+            <button onclick="scrollToSection('products')" class="btn pulse">Explore Products</button>
+        </div>
+    </section>
+
+    <section id="products">
+        <div class="products-grid"></div>
+    </section>
+
+    <section id="cart">
+        <div class="cart-items">
+            <h2>Your Cart</h2>
+        </div>
+    </section>
+
+    <!-- Product Modal -->
+    <div class="product-modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Loader timeout
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.querySelector('.loader').classList.add('hidden');
+            }, 1000);
+        });
+
+        // Intersection Observer for section animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Product data
+        const products = [
+            { 
+                id: 1, 
+                name: 'skeleton stickers', 
+                price: 1, 
+                images: [
+                    's1.jpg',
+                    's2.jpg'
+                ],
+                description: 'skeleton stickers 2 stickers at just 1$ BUY NOW .'
+            },
+            { 
+                id: 2, 
+                name: 'all anime stickers', 
+                price: 5, 
+                images: [
+                    'anime1.jpg',
+                    'anime2.jpg'
+                ],
+                description: 'perfect stickers for YOUR phone and laptop just for all anime ke 14 buy right now.'
+            },
+            { 
+                id: 3, 
+                name: 'NASA stickers', 
+                price: 5, 
+                images: [
+                    'u1.jpg',
+                    'u2.jpg'
+                ],
+                description: 'GET OFFICIAL NASA stickers for just 5$ .'
+            },
+            { 
+                id: 4, 
+                name: 'posters heisenberg', 
+                price: 9, 
+                images: [
+                    'a1.jpg',
+                    'a2.jpg'
+                ],
+                description: 'GET OFFICIAL NETFLIX HEISEINBERG POSTER FOR JUST $9.'
+            },
+            { 
+                id: 5, 
+                name: 'JOHN WICK POSTER', 
+                price: 10, 
+                images: [
+                    'johnwick1.jpg',
+                    'johnwick2.jpg'
+                ],
+                description: 'JOHN WICK NAAM HI KAAFI HAI AAJ hi BUY kare.'
+            },
+            { 
+                id: 6, 
+                name: 'CAR', 
+                price: 8, 
+                images: [
+                    'car1.jpg',
+                    'car2.jpg'
+                ],
+                description: 'car posters make your room diffrent.'
+            }
+        ];
+
+        // Cart functionality
+        let cart = [];
+
+        function renderProducts() {
+            const grid = document.querySelector('.products-grid');
+            grid.innerHTML = products.map(product => `
+                <div class="product-card staggered" onclick="showProductDetail(${product.id})">
+                    <img src="${product.images[0]}" alt="${product.name}" class="product-image">
+                    <h3 style="margin: 1rem 0;">${product.name}</h3>
+                    <p>$${product.price}</p>
+                    <button onclick="event.stopPropagation(); addToCart(${product.id})" class="btn">Add to Cart</button>
+                </div>
+            `).join('');
+        }
+
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            const modalBody = document.querySelector('.modal-body');
+            modalBody.innerHTML = `
+                <h2>${product.name}</h2>
+                <div class="product-images">
+                    ${product.images.map(img => `
+                        <img src="${img}" alt="${product.name}">
+                    `).join('')}
+                </div>
+                <p>$${product.price}</p>
+                <p>${product.description}</p>
+                <button onclick="addToCart(${product.id})" class="btn">Add to Cart</button>
+            `;
+            document.querySelector('.product-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.querySelector('.product-modal').classList.remove('active');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.querySelector('.product-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            cart.push(product);
+            updateCart();
+            animateCartIcon();
+            closeModal();
+        }
+
+        function removeFromCart(index) {
+            const cartItem = document.querySelectorAll('.cart-item')[index];
+            cartItem.classList.add('cart-item-remove');
+            setTimeout(() => {
+                cart.splice(index, 1);
+                updateCart();
+            }, 300);
+        }
+
+        function animateCartIcon() {
+            const cartLink = document.querySelector('nav a[href="#cart"]');
+            cartLink.style.transform = 'scale(1.2)';
+            setTimeout(() => cartLink.style.transform = 'scale(1)', 300);
+        }
+
+        function updateCart() {
+            const cartItems = document.querySelector('.cart-items');
+            cartItems.innerHTML = `
+                <h2>Your Cart (${cart.length})</h2>
+                ${cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div>${item.name}</div>
+                        <div>$${item.price}</div>
+                        <button onclick="removeFromCart(${index})" class="remove-btn">Remove</button>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 2rem; font-size: 1.2rem;">
+                    Total: $${cart.reduce((sum, item) => sum + item.price, 0)}
+                </div>
+            `;
+        }
+
+        // Scroll to section
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initial render
+        renderProducts();
+    </script>
+</body>
+</html>
